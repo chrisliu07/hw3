@@ -2,6 +2,7 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
+#include <vector>
 
 template <typename T, typename PComparator = std::less<T> >
 class Heap
@@ -61,14 +62,55 @@ public:
 
 private:
   /// Add whatever helper functions and data members you need below
-
+  std::vector<T> items_;
+  int m_;
+  PComparator comp_;
 
 
 
 };
 
 // Add implementation of member functions here
+template<typename T, typename PComparator>
+void Heap<T, PComparator>::push(const T& item) {
+  items_.push_back(item);
 
+  size_t index = items_.size() - 1;
+
+  while (index > 0) {
+    size_t parent = (index - 1) / m_;
+
+    if (comp_(items_[index], items_[parent])) {
+      std::swap(items_[index], items_[parent]);
+      index = parent;
+    } else {
+      break;
+    }
+  }
+}
+
+
+template<typename T, typename PComparator>
+Heap<T, PComparator>::Heap(int m, PComparator c) : m_(m), comp_(c) {
+  if (m < 2) {
+    throw std::invalid_argument("m must be >= 2");
+  }
+}
+
+template<typename T, typename PComparator>
+Heap<T, PComparator>::~Heap() {
+
+}
+
+template<typename T, typename PComparator>
+bool Heap<T, PComparator>::empty() const {
+  return items_.empty();
+}
+
+template<typename T, typename PComparator>
+size_t Heap<T, PComparator>::size() const {
+  return items_.size();
+}
 
 // We will start top() for you to handle the case of 
 // calling top on an empty heap
@@ -81,14 +123,12 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
-
+    throw std::underflow_error("heap is empty");
 
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
-
-
-
+  return items_[0];
 }
 
 
@@ -101,11 +141,43 @@ void Heap<T,PComparator>::pop()
     // ================================
     // throw the appropriate exception
     // ================================
-
+    throw std::underflow_error("Heap is empty");
 
   }
 
+  if (items_.size() == 1) {
+    items_.pop_back();
+    return;
+  }
 
+  items_[0] = items_.back();
+  items_.pop_back();
+
+  size_t index = 0;
+  size_t n = items_.size();
+
+  while (true) {
+    size_t best = index;
+
+    for (int k = 1; k <= m_; k++) {
+      size_t child = index * m_ + k;
+
+      if (child >= n) {
+        break;
+      }
+
+      if (comp_(items_[child], items_[best])) {
+        best = child;
+      }
+    }
+
+    if (best == index) {
+      break;
+    }
+
+    std::swap(items_[index], items_[best]);
+    index = best;
+  }
 
 }
 
